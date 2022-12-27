@@ -100,3 +100,46 @@ resource "aws_iam_role_policy_attachment" "tf-testing-bucket-readonly" {
   role       = "${aws_iam_role.tf-testing-bucket-readonly.name}"
   policy_arn = "${aws_iam_policy.tf-testing-bucket-readonly.arn}"
 }
+
+resource "aws_instance" "test-instance" {
+  count = 1
+  ami = lookup(var.ec2_ami,var.region)
+  instance_type = var.instance_type
+  security_groups = [aws_security_group.default.name]
+  availability_zone = var.azs
+  key_name = var.ec2_keypair
+  tags = {
+    "Name" = "test-instance-${count.index}"
+  }
+  
+}
+
+resource "aws_security_group" "default" {
+  name = "${var.name}-sg"
+  description = "Allow ssh"
+  vpc_id = var.vpc_id
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = local.home
+  }
+
+  ingress {
+    from_port = -1
+    protocol = "ICMP"
+    to_port = -1
+    cidr_blocks = local.home
+  }
+   egress {
+     from_port = 0
+     protocol = "-1"
+     to_port = 0
+     cidr_blocks = ["0.0.0.0/0"]
+   }
+
+  tags = {
+    Name      = "${var.name}-sg"
+  }
+}
