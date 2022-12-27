@@ -142,5 +142,4 @@ resource "aws_security_group" "default" {
   tags = {
     Name      = "${var.name}-sg"
   }
-
 }
